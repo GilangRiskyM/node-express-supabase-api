@@ -1,5 +1,5 @@
-import app from "../src/server";
+const app = require("../src/server");
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   return app(req, res);
-}
+};
