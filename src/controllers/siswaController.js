@@ -70,23 +70,33 @@ const getSiswaById = async (req, res) => {
 // Create siswa baru
 const createSiswa = async (req, res) => {
   try {
-    const { nama, nis, kelas, jurusan } = req.body;
+    console.log(req.body); // Debugging
 
-    // Validasi input tidak boleh kosong
-    if (!nama || !nis || !kelas || !jurusan) {
-      return res.status(400).json({
-        success: false,
-        message: "Nama, NIS, kelas, dan jurusan wajib diisi",
-      });
-    }
+    const { nama, nis, kelas, jurusan } = req.body;
+    let errors = {};
 
     // Cek apakah NIS sudah digunakan
     const existingSiswa = await Siswa.findOne({ where: { nis } });
     if (existingSiswa) {
-      return res.status(400).json({
-        success: false,
-        message: "NIS sudah terdaftar, gunakan NIS lain",
+      return res.status(422).json({
+        errors: { nis: "NIS sudah terdaftar" },
       });
+    }
+
+    // Validasi input tidak boleh kosong
+    if (!nama) errors.nama = "Nama wajib diisi";
+    if (!nis) errors.nis = "NIS wajib diisi";
+    if (!kelas) errors.kelas = "Kelas wajib diisi";
+    if (!jurusan) errors.jurusan = "Jurusan wajib diisi";
+
+    // Validasi panjang NIS (minimal 4 karakter)
+    if (nis && nis.length < 4) {
+      errors.nis = "NIS minimal 4 karakter";
+    }
+
+    // Jika ada error, kirim respons ke frontend
+    if (Object.keys(errors).length > 0) {
+      return res.status(422).json({ errors });
     }
 
     // Buat data siswa baru
@@ -98,6 +108,7 @@ const createSiswa = async (req, res) => {
       message: "Data siswa berhasil ditambahkan",
     });
   } catch (error) {
+    console.error(error);
     return res.status(500).json({
       success: false,
       message: "Gagal menambah data siswa",
@@ -111,6 +122,7 @@ const updateSiswa = async (req, res) => {
   try {
     const { id } = req.params;
     const { nama, nis, kelas, jurusan } = req.body;
+    let errors = {};
 
     const siswa = await Siswa.findByPk(id);
 
@@ -121,30 +133,30 @@ const updateSiswa = async (req, res) => {
       });
     }
 
-    // Periksa apakah ada perubahan data sebelum update
-    if (
-      siswa.nama === nama &&
-      siswa.nis === nis &&
-      siswa.kelas === kelas &&
-      siswa.jurusan === jurusan
-    ) {
-      return res.status(200).json({
-        success: true,
-        message: "Tidak ada perubahan pada data siswa",
-        data: siswa,
-      });
+    // Cek apakah NIS sudah digunakan oleh siswa lain (kecuali dirinya sendiri)
+    const existingSiswa = await Siswa.findOne({ where: { nis } });
+    if (existingSiswa && existingSiswa.id !== siswa.id) {
+      errors.nis = "NIS sudah terdaftar oleh siswa lain";
+    }
+
+    // Validasi input tidak boleh kosong
+    if (!nama) errors.nama = "Nama wajib diisi";
+    if (!nis) errors.nis = "NIS wajib diisi";
+    if (!kelas) errors.kelas = "Kelas wajib diisi";
+    if (!jurusan) errors.jurusan = "Jurusan wajib diisi";
+
+    // Validasi panjang NIS minimal 4 karakter
+    if (nis && nis.length < 4) {
+      errors.nis = "NIS minimal 4 karakter";
+    }
+
+    // Jika ada error, kirim respons ke frontend
+    if (Object.keys(errors).length > 0) {
+      return res.status(422).json({ errors });
     }
 
     // Update data siswa
-    const updatedSiswa = await siswa.update({
-      nama,
-      nis,
-      kelas,
-      jurusan,
-    });
-
-    // Reload untuk memastikan perubahan terjadi
-    await updatedSiswa.reload();
+    const updatedSiswa = await siswa.update({ nama, nis, kelas, jurusan });
 
     return res.status(200).json({
       success: true,

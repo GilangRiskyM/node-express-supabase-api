@@ -3,7 +3,7 @@ const pg = require("pg");
 require("dotenv").config();
 
 if (!process.env.DATABASE_URL) {
-  console.error("DATABASE_URL not found");
+  console.error("DATABASE_URL tidak ditemukan");
 }
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
@@ -26,9 +26,9 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
 const testConnection = async () => {
   try {
     await sequelize.authenticate();
-    console.log("Connection to database has been established successfully.");
+    console.log("Koneksi ke Database berhasil!");
   } catch (error) {
-    console.error("Unable to connect to the database:", error);
+    console.error("Tidak dapat terhubung ke Database:", error);
   }
 };
 

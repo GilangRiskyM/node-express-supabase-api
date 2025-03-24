@@ -22,7 +22,7 @@ app.use("/api", routes);
 // Root route
 app.get("/", (req, res) => {
   res.json({
-    message: "Welcome to the API",
+    message: "Selamat datang di API sederhana",
     version: "1.0.0",
     status: "online",
   });
@@ -34,13 +34,13 @@ if (process.env.NODE_ENV !== "production") {
   sequelize
     .sync({ alter: true })
     .then(() => {
-      console.log("Database synced successfully");
+      console.log("Berhasil sinkronisasi dengan Database!");
       app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
+        console.log(`Server berjalan di port ${PORT}`);
       });
     })
     .catch((err) => {
-      console.error("Error syncing database:", err);
+      console.error("Error dalam sinkronisasi dengan Database:", err);
     });
 }
 
